@@ -93,6 +93,16 @@ class App:
 
             def get_plot():
                 documents, vectors, colors = DealAgentFramework.get_plot_data(max_datapoints=800)
+                
+                # Handle empty data
+                if len(vectors) == 0:
+                    fig = go.Figure()
+                    fig.update_layout(
+                        title="No data available yet. Run the agent to populate the vector database.",
+                        height=400,
+                    )
+                    return fig
+                
                 # Create the 3D scatter plot
                 fig = go.Figure(
                     data=[

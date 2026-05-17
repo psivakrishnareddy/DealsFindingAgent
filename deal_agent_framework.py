@@ -106,11 +106,22 @@ class DealAgentFramework:
         result = collection.get(
             include=["embeddings", "documents", "metadatas"], limit=max_datapoints
         )
+        
+        # Handle empty collection
+        if not result["embeddings"] or len(result["embeddings"]) == 0:
+            return [], np.array([]).reshape(0, 3), []
+        
         vectors = np.array(result["embeddings"])
         documents = result["documents"]
         categories = [metadata["category"] for metadata in result["metadatas"]]
         colors = [COLORS[CATEGORIES.index(c)] for c in categories]
-        tsne = TSNE(n_components=3, random_state=42, n_jobs=-1)
+        
+        n_samples = len(vectors)
+        # t-SNE requires perplexity < n_samples, default perplexity is 30
+        # Use a smaller perplexity if we don't have enough samples
+        perplexity = min(30, max(5, n_samples - 1))
+        
+        tsne = TSNE(n_components=3, random_state=42, n_jobs=-1, perplexity=perplexity)
         reduced_vectors = tsne.fit_transform(vectors)
         return documents, reduced_vectors, colors
 
